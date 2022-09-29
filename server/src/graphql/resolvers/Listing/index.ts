@@ -3,8 +3,17 @@ import { ObjectId } from 'mongodb';
 import { Request } from 'express';
 
 import { Database, Listing, User } from '../../../lib/types';
-import { ListingArgs, ListingBookingsArgs, ListingBookingsData } from './types';
+import {
+	ListingArgs,
+	ListingBookingsArgs,
+	ListingBookingsData,
+	ListingsArgs,
+	ListingsData,
+	ListingsFilter,
+	ListingsQuery,
+} from './types';
 import { authorize } from '../../../lib/utils';
+import { Google } from '../../../lib/api';
 
 export const listingResolvers: IResolvers = {
 	Query: {
@@ -27,6 +36,56 @@ export const listingResolvers: IResolvers = {
 				return listing;
 			} catch (error) {
 				throw new Error(`Failed to query listing: ${error}`);
+			}
+		},
+		listings: async (
+			_root: undefined,
+			{ location, filter, limit, page }: ListingsArgs,
+			{ db }: { db: Database }
+		): Promise<ListingsData> => {
+			try {
+				const query: ListingsQuery = {};
+				const data: ListingsData = {
+					region: null,
+					total: 0,
+					result: [],
+				};
+
+				if (location) {
+					const { country, admin, city } = await Google.geocode(location);
+
+					if (city) query.city = city;
+					if (admin) query.admin = admin;
+					if (country) {
+						query.country = country;
+					} else {
+						throw new Error('no country found');
+					}
+
+					const cityText = city ? `${city}, ` : '';
+					const adminText = admin ? `${admin}, ` : '';
+					data.region = `${cityText}${adminText}${country}`;
+				}
+
+				let cursor = db.listings.find(query);
+				data.total = await cursor.count();
+
+				if (filter && filter === ListingsFilter.PRICE_LOW_TO_HIGH) {
+					cursor = cursor.sort({ price: 1 });
+				}
+
+				if (filter && filter === ListingsFilter.PRICE_HIGH_TO_LOW) {
+					cursor = cursor.sort({ price: -1 });
+				}
+
+				cursor = cursor.skip(page > 0 ? (page - 1) * limit : 0);
+				cursor = cursor.limit(limit);
+
+				data.result = await cursor.toArray();
+
+				return data;
+			} catch (error) {
+				throw new Error(`Failed to query listings: ${error}`);
 			}
 		},
 	},
