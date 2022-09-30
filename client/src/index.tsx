@@ -18,6 +18,7 @@ import {
 	Host,
 	Listing,
 	NotFound,
+	Stripe,
 	User,
 	Listings,
 	Login,
@@ -115,8 +116,15 @@ const App = () => {
 							<Route index element={<Listings />} />
 							<Route path=':location' element={<Listings />} />
 						</Route>
-						<Route path='user/:id' element={<User viewer={viewer} />} />
+						<Route
+							path='user/:id'
+							element={<User viewer={viewer} setViewer={setViewer} />}
+						/>
 						<Route path='login' element={<Login setViewer={setViewer} />} />
+						<Route
+							path='stripe'
+							element={<Stripe viewer={viewer} setViewer={setViewer} />}
+						/>
 					</Route>
 					<Route path='*' element={<NotFound />} />
 				</Routes>
