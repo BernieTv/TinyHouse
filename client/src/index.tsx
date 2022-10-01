@@ -110,7 +110,7 @@ const App = () => {
 				<Routes>
 					<Route path='/'>
 						<Route index element={<Home />} />
-						<Route path='host' element={<Host />} />
+						<Route path='host' element={<Host viewer={viewer} />} />
 						<Route path='listing/:id' element={<Listing />} />
 						<Route path='listings'>
 							<Route index element={<Listings />} />

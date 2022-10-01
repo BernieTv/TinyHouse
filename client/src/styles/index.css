@@ -271,7 +271,8 @@
 }
 
 .host__form-image-upload img {
-	width: 125px;
+	width: 100%;
+	height: 100%;
 }
 .listing-bookings h3.ant-typography,
 .listing-bookings h4.ant-typography {
