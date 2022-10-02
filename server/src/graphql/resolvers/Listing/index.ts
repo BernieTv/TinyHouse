@@ -15,7 +15,7 @@ import {
 	HostListingInput,
 } from './types';
 import { authorize } from '../../../lib/utils';
-import { Google } from '../../../lib/api';
+import { Google, Cloudinary } from '../../../lib/api';
 
 const verifyHostListingInput = ({
 	title,
@@ -129,9 +129,12 @@ export const listingResolvers: IResolvers = {
 				throw new Error('invalid address input');
 			}
 
+			const imageUrl = await Cloudinary.upload(input.image);
+
 			const insertResult = await db.listings.insertOne({
 				_id: new ObjectId(),
 				...input,
+				image: imageUrl,
 				bookings: [],
 				bookingsIndex: {},
 				country,
