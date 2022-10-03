@@ -111,7 +111,7 @@ const App = () => {
 					<Route path='/'>
 						<Route index element={<Home />} />
 						<Route path='host' element={<Host viewer={viewer} />} />
-						<Route path='listing/:id' element={<Listing />} />
+						<Route path='listing/:id' element={<Listing viewer={viewer} />} />
 						<Route path='listings'>
 							<Route index element={<Listings />} />
 							<Route path=':location' element={<Listings />} />

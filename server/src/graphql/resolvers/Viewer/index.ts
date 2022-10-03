@@ -1,6 +1,6 @@
 import { IResolvers } from 'graphql-tools';
 import crypto from 'crypto';
-import { InsertOneResult, WithId } from 'mongodb';
+import { WithId } from 'mongodb';
 import { Request, Response } from 'express';
 
 import { Viewer, Database, User } from '../../../lib/types';
@@ -20,7 +20,7 @@ const logInViaGoogle = async (
 	token: string,
 	db: Database,
 	res: Response
-): Promise<User | undefined> => {
+): Promise<WithId<User> | null> => {
 	const { user } = await Google.logIn(code);
 
 	if (!user) {
@@ -62,7 +62,7 @@ const logInViaGoogle = async (
 		{ returnDocument: 'after' }
 	);
 
-	let viewer: WithId<User> | InsertOneResult<User> | null = updateRes.value;
+	let viewer: WithId<User> | null = updateRes.value;
 
 	if (!viewer) {
 		const insertResult = await db.users.insertOne({
@@ -77,7 +77,8 @@ const logInViaGoogle = async (
 		});
 
 		if (insertResult.acknowledged) {
-			viewer = insertResult;
+			const insertedViewer = await db.users.findOne({ _id: insertResult.insertedId });
+			viewer = insertedViewer;
 		}
 	}
 
@@ -86,7 +87,7 @@ const logInViaGoogle = async (
 		maxAge: 21 * 24 * 60 * 60 * 1000,
 	});
 
-	return viewer as User;
+	return viewer;
 };
 
 const loginViaCookie = async (
@@ -130,7 +131,7 @@ export const viewerResolvers: IResolvers = {
 				const code = input ? input.code : null;
 				const token = crypto.randomBytes(16).toString('hex');
 
-				const viewer: User | undefined = code
+				const viewer: WithId<User> | null | undefined = code
 					? await logInViaGoogle(code, token, db, res)
 					: await loginViaCookie(token, db, req, res);
 

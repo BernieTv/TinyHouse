@@ -71,7 +71,7 @@ export const Login = ({ setViewer }: Props) => {
 		);
 	}
 
-	if (logInData && logInData.logIn) {
+	if (logInData && logInData.logIn.id) {
 		const { id: viewerId } = logInData.logIn;
 		navigate(`/user/${viewerId}`);
 	}
