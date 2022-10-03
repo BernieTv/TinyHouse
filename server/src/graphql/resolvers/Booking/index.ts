@@ -37,7 +37,7 @@ const resolveBookingsIndex = (
 			);
 		}
 
-		dateCursor = new Date(dateCursor.getDate() + 86_400_000);
+		dateCursor = new Date(dateCursor.getTime() + 86_400_000);
 	}
 
 	return newBookingsIndex;
@@ -82,7 +82,7 @@ export const bookingResolvers: IResolvers = {
 
 				const totalPrice =
 					listing.price *
-					((checkOutDate.getDate() - checkInDate.getDate()) / 86_400_000 + 1);
+					((checkOutDate.getTime() - checkInDate.getTime()) / 86_400_000 + 1);
 
 				const host = await db.users.findOne({
 					_id: listing.host,
@@ -119,16 +119,17 @@ export const bookingResolvers: IResolvers = {
 					}
 				);
 
-				await db.users.updateOne(
-					{
-						_id: viewer._id,
-					},
-					{
-						$push: {
-							bookings: insertedBooking?._id,
+				insertedBooking &&
+					(await db.users.updateOne(
+						{
+							_id: viewer._id,
 						},
-					}
-				);
+						{
+							$push: {
+								bookings: insertedBooking._id,
+							},
+						}
+					));
 
 				await db.listings.updateOne(
 					{

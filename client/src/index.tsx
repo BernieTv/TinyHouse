@@ -9,6 +9,8 @@ import {
 	createHttpLink,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { Layout, Affix, Spin } from 'antd';
 
 import reportWebVitals from './reportWebVitals';
@@ -64,6 +66,8 @@ const initialViewer: Viewer = {
 	didRequest: false,
 };
 
+const stripePromise = loadStripe(process.env.REACT_APP_S_PUBLISHABLE_KEY as string);
+
 const App = () => {
 	const [viewer, setViewer] = useState<Viewer>(initialViewer);
 	const [logIn, { error }] = useMutation<LogInData, LogInVariables>(LOG_IN, {
@@ -100,36 +104,42 @@ const App = () => {
 		<ErrorBanner description="We weren't able to verify if you were logged in. Please try again later!" />
 	) : null;
 
+	if (!stripePromise) {
+		return <></>;
+	}
+
 	return (
-		<Router>
-			<Layout id='app'>
-				{logInErrorBannerElement}
-				<Affix offsetTop={0} className='app__affix-header'>
-					<AppHeader viewer={viewer} setViewer={setViewer} />
-				</Affix>
-				<Routes>
-					<Route path='/'>
-						<Route index element={<Home />} />
-						<Route path='host' element={<Host viewer={viewer} />} />
-						<Route path='listing/:id' element={<Listing viewer={viewer} />} />
-						<Route path='listings'>
-							<Route index element={<Listings />} />
-							<Route path=':location' element={<Listings />} />
+		<Elements stripe={stripePromise}>
+			<Router>
+				<Layout id='app'>
+					{logInErrorBannerElement}
+					<Affix offsetTop={0} className='app__affix-header'>
+						<AppHeader viewer={viewer} setViewer={setViewer} />
+					</Affix>
+					<Routes>
+						<Route path='/'>
+							<Route index element={<Home />} />
+							<Route path='host' element={<Host viewer={viewer} />} />
+							<Route path='listing/:id' element={<Listing viewer={viewer} />} />
+							<Route path='listings'>
+								<Route index element={<Listings />} />
+								<Route path=':location' element={<Listings />} />
+							</Route>
+							<Route
+								path='user/:id'
+								element={<User viewer={viewer} setViewer={setViewer} />}
+							/>
+							<Route path='login' element={<Login setViewer={setViewer} />} />
+							<Route
+								path='stripe'
+								element={<Stripe viewer={viewer} setViewer={setViewer} />}
+							/>
 						</Route>
-						<Route
-							path='user/:id'
-							element={<User viewer={viewer} setViewer={setViewer} />}
-						/>
-						<Route path='login' element={<Login setViewer={setViewer} />} />
-						<Route
-							path='stripe'
-							element={<Stripe viewer={viewer} setViewer={setViewer} />}
-						/>
-					</Route>
-					<Route path='*' element={<NotFound />} />
-				</Routes>
-			</Layout>
-		</Router>
+						<Route path='*' element={<NotFound />} />
+					</Routes>
+				</Layout>
+			</Router>
+		</Elements>
 	);
 };
 

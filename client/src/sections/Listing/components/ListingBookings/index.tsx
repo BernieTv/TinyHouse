@@ -38,8 +38,8 @@ export const ListingBookings = ({
 				const bookingHistory = (
 					<div className='listing-bookings__history'>
 						<div>
-							Check on: <Text strong>{listingBooking.checkIn}</Text>
-							Check out: <Text strong>{listingBooking.checkOut}</Text>
+							Check on: <Text strong>{listingBooking.checkIn}</Text> Check out:{' '}
+							<Text strong>{listingBooking.checkOut}</Text>
 						</div>
 					</div>
 				);
