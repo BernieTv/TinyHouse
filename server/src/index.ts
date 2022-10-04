@@ -31,3 +31,5 @@ const mount = async (app: Application) => {
 };
 
 mount(express());
+
+module.exports = mount(express());
